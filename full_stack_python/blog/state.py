@@ -20,17 +20,17 @@ class BlogPostState(SessionState):
     post_publish_active: bool = False
 
     @rx.var
-    def blog_post_id(self):
-        return self.router.page.params.get("blog_id", "")
+    def blog_post_id(self) -> str:
+        return self.blog_id
 
     @rx.var
-    def blog_post_url(self):
+    def blog_post_url(self) -> str:
         if not self.post:
             return f"{BLOG_POSTS_ROUTE}"
         return f"{BLOG_POSTS_ROUTE}/{self.post.id}"
 
     @rx.var
-    def blog_post_edit_url(self):
+    def blog_post_edit_url(self) -> str:
         if not self.post:
             return f"{BLOG_POSTS_ROUTE}"
         return f"{BLOG_POSTS_ROUTE}/{self.post.id}/edit"
@@ -112,6 +112,12 @@ class BlogPostState(SessionState):
         if edit_page:
              return rx.redirect(f"{self.blog_post_edit_url}")
         return rx.redirect(f"{self.blog_post_url}")
+
+    def set_post_content(self, value: str):
+        self.post_content = value
+
+    def set_post_publish_active(self, value: bool):
+        self.post_publish_active = value
 
 
 class BlogAddPostFormState(BlogPostState):

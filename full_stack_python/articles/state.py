@@ -21,11 +21,11 @@ class ArticlePublicState(SessionState):
     limit: int = 20
 
     @rx.var
-    def post_id(self):
-        return self.router.page.params.get("post_id", "")
+    def post_id(self) -> str:
+        return self.post_id_web
 
     @rx.var
-    def post_url(self):
+    def post_url(self) -> str:
         if not self.post:
             return f"{ARTICLE_LIST_ROUTE}"
         return f"{ARTICLE_LIST_ROUTE}/{self.post.id}"
