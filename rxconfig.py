@@ -2,5 +2,9 @@ import reflex as rx
 
 config = rx.Config(
     app_name="full_stack_python",
-    db_url="sqlite:///reflex.db", 
+    db_url="sqlite:///reflex.db",
+    plugins=[
+        rx.plugins.SitemapPlugin(),
+        rx.plugins.TailwindV4Plugin(),
+    ],
 )

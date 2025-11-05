@@ -14,7 +14,7 @@ class ContactState(SessionState):
     did_submit: bool = False
 
     @rx.var
-    def thank_you(self):
+    def thank_you(self) -> str:
         first_name = self.form_data.get("first_name") or ""
         return f"Thank you {first_name}".strip() + "!"
 
