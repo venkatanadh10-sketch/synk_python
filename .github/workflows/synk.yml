@@ -31,8 +31,8 @@ jobs:
             poetry install
           fi
 
-      # Verify Python
-      - name: Verify Python installation
+      # Verify Python installation
+      - name: Verify Python
         run: python --version
 
       # Install Snyk CLI
