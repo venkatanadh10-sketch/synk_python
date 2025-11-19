@@ -2,8 +2,10 @@ name: Snyk Security Scan - Python
 
 on:
   workflow_dispatch:   # Manual run from Actions tab
-  push:                # Trigger on ANY branch push
-  pull_request:        # Trigger on ANY branch PR
+  push:
+    branches:
+      - main           # Trigger on push to main/default branch
+  pull_request:        # Trigger on any PR
 
 jobs:
   snyk-sca:
@@ -14,8 +16,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Set up Python 3.11
-      - name: Set up Python
+      # Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
@@ -39,11 +41,11 @@ jobs:
       - name: Install Snyk
         run: npm install -g snyk
 
-      # Authenticate with Snyk
+      # Authenticate Snyk
       - name: Authenticate Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
-      # Run Snyk test
+      # Run Snyk test (do not fail workflow on vulnerabilities)
       - name: Snyk Test
         run: snyk test --severity-threshold=medium || echo "Vulnerabilities found, continuing workflow."
 
