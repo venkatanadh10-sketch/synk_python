@@ -49,7 +49,7 @@ jobs:
 
       # Run Snyk test and FAIL on medium/high/critical
       - name: Snyk Test for Python (Quality Gate)
-        run: snyk test --severity-threshold=medium
+        run: snyk test --severity-threshold=low
 
       # Send results to Snyk dashboard
       - name: Snyk Monitor
