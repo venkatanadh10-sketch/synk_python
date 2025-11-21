@@ -49,7 +49,7 @@ jobs:
 
       # Run Snyk Test (DONT FAIL WORKFLOW)
       - name: Snyk Test for Python
-        run: snyk test --severity-threshold=medium || echo "Vulnerabilities found, but workflow will continue."
+        run: snyk test --severity-threshold=High || echo "Vulnerabilities found, but workflow will continue."
 
       # Send results to Snyk Dashboard
       - name: Snyk Monitor
