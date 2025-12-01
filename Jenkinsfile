@@ -1,29 +1,27 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.10'
-            args '-u root'   // allows pip install and docker login
-        }
-    }
-
-    environment {
-        DOCKER_IMAGE = "python-app"
-        DOCKER_TAG   = "latest"
-    }
+    agent any
 
     stages {
 
-        stage('Setup Python Environment') {
+        stage('Check Python') {
             steps {
                 sh '''
-                    python3 --version
-                    pip3 --version
+                    python3 --version || exit 1
+                    pip3 --version || exit 1
+                '''
+            }
+        }
 
+        stage('Setup Virtual Environment') {
+            steps {
+                sh '''
                     python3 -m venv venv
                     . venv/bin/activate
 
                     pip install --upgrade pip
-                    pip install -r requirements.txt || true
+                    if [ -f "requirements.txt" ]; then
+                        pip install -r requirements.txt
+                    fi
                 '''
             }
         }
@@ -33,32 +31,39 @@ pipeline {
                 sh '''
                     . venv/bin/activate
                     pip install flake8
+
+                    # Run lint only, do not fail pipeline
                     flake8 || true
                 '''
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Run Tests') {
             steps {
                 sh '''
-                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+                    . venv/bin/activate
+
+                    # Run python tests if test folder exists
+                    if [ -d "tests" ]; then
+                        echo "Running tests..."
+                        pytest -q || true
+                    else
+                        echo "No tests directory found. Skipping tests."
+                    fi
                 '''
             }
         }
 
-        stage('Push to DockerHub') {
+        stage('Run Application') {
+            when {
+                expression { fileExists('app.py') }
+            }
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                   
-                )]) {
-                    sh '''
-                        echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-
-                        docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_USERNAME}/${DOCKER_IMAGE}:${DOCKER_TAG}
-                        docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE}:${DOCKER_TAG}
-                    '''
-                }
+                sh '''
+                    . venv/bin/activate
+                    echo "Running Python application..."
+                    python app.py || true
+                '''
             }
         }
     }
