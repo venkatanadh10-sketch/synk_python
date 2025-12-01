@@ -6,6 +6,8 @@ pipeline {
         stage('Check Python') {
             steps {
                 sh '''
+                sudo apt update
+                sudo apt install python3 python3-venv python3-pip -y
                     python3 --version || exit 1
                     pip3 --version || exit 1
                 '''
