@@ -1,70 +1,86 @@
 pipeline {
     agent any
 
-    stages {
+    environment {
+        VENV_DIR = "venv"
+    }
 
+    stages {
         stage('Check Python') {
             steps {
-                sh '
-                 sudo apt update
-                 sudo apt install python3 python3-venv python3-pip -y
-                    python3 --version 
-                    pip3 --version 
-                '
+                script {
+                    // Check if Python3 is installed, install if missing
+                    sh '''
+                    if ! command -v python3 &> /dev/null
+                    then
+                        echo "Python3 not found. Installing..."
+                        sudo apt update
+                        sudo apt install -y python3 python3-venv python3-pip
+                    fi
+                    python3 --version
+                    pip3 --version
+                    '''
+                }
             }
         }
 
         stage('Setup Virtual Environment') {
             steps {
-                sh '
-                    python3 -m venv venv
-                    . venv/bin/activate
+                sh '''
+                # Remove existing venv if present
+                if [ -d "${VENV_DIR}" ]; then
+                    rm -rf ${VENV_DIR}
+                fi
 
-                    pip install --upgrade pip
-                    if [ -f "requirements.txt" ]; then
-                        pip install -r requirements.txt
-                    fi
-                '
+                # Create virtual environment
+                python3 -m venv ${VENV_DIR}
+                
+                # Activate and upgrade pip
+                source ${VENV_DIR}/bin/activate
+                pip install --upgrade pip
+                '''
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                source ${VENV_DIR}/bin/activate
+                if [ -f requirements.txt ]; then
+                    pip install -r requirements.txt
+                fi
+                '''
             }
         }
 
         stage('Lint') {
             steps {
-                sh '
-                    . venv/bin/activate
-                    pip install flake8
-
-                    # Run lint only, do not fail pipeline
-                    flake8 || true
-                '
+                sh '''
+                source ${VENV_DIR}/bin/activate
+                # Example linting with flake8 (install if missing)
+                pip install flake8
+                flake8 .
+                '''
             }
         }
 
         stage('Run Tests') {
             steps {
                 sh '''
-                    . venv/bin/activate
-
-                    # Run python tests if test folder exists
-                    if [ -d "tests" ]; then
-                        echo "Running tests..."
-                        pytest -q || true
-                    else
-                        echo "No tests directory found. Skipping tests."
-                    fi
+                source ${VENV_DIR}/bin/activate
+                # Example testing with pytest (install if missing)
+                pip install pytest
+                pytest -v
                 '''
             }
         }
 
         stage('Run Application') {
-            when {
-                expression { fileExists('app.py') }
-            }
             steps {
                 sh '''
-                    . venv/bin/activate
-                    echo "Running Python application..."
-                    python app.py || true
+                source ${VENV_DIR}/bin/activate
+                # Example: run your Python app
+                python app.py
                 '''
             }
         }
