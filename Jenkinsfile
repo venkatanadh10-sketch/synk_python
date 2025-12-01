@@ -3,7 +3,11 @@ pipeline {
 
     environment {
         VENV = "venv"
-
+        // Optionally: docker image name
+        DOCKER_IMAGE = "full-stack-python-app"
+        // If pushing to Docker registry, define credentials in Jenkins
+        DOCKERHUB_USER = credentials('dockerhub-username')
+        DOCKERHUB_PASS = credentials('dockerhub-password')
     }
 
     stages {
@@ -70,7 +74,13 @@ pipeline {
             }
         }
 
-       
+        stage('Push Docker Image') {
+            steps {
+                sh """
+                  echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                  docker tag ${DOCKER_IMAGE}:latest $DOCKERHUB_USER/${DOCKER_IMAGE}:latest
+                  docker push $DOCKERHUB_USER/${DOCKER_IMAGE}:latest
+                """
             }
         }
     }
