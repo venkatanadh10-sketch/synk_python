@@ -5,18 +5,18 @@ pipeline {
 
         stage('Check Python') {
             steps {
-                sh '''
+                sh '
                  sudo apt update
                  sudo apt install python3 python3-venv python3-pip -y
-                    python3 --version || exit 1
-                    pip3 --version || exit 1
-                '''
+                    python3 --version 
+                    pip3 --version 
+                '
             }
         }
 
         stage('Setup Virtual Environment') {
             steps {
-                sh '''
+                sh '
                     python3 -m venv venv
                     . venv/bin/activate
 
@@ -24,19 +24,19 @@ pipeline {
                     if [ -f "requirements.txt" ]; then
                         pip install -r requirements.txt
                     fi
-                '''
+                '
             }
         }
 
         stage('Lint') {
             steps {
-                sh '''
+                sh '
                     . venv/bin/activate
                     pip install flake8
 
                     # Run lint only, do not fail pipeline
                     flake8 || true
-                '''
+                '
             }
         }
 
